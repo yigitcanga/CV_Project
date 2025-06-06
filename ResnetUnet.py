@@ -119,7 +119,7 @@ class ResNetChangeDetection(nn.Module):
         self.up3 = self.upsample(256, 64)   # 128 + 128
         self.up4 = self.upsample(128, 32)   # 64 + 64
 
-        self.final_conv = nn.Conv2d(32, 1, kernel_size=1)
+        self.final_conv = nn.Conv2d(96, 1, kernel_size=1)
 
     def upsample(self, in_channels, out_channels):
         return nn.Sequential(
