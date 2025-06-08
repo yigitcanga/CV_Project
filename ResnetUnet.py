@@ -251,6 +251,25 @@ def evaluate(model, dataloader):
     print("F1 Score:", f1_score(targets, preds))
     print("IoU Score:", jaccard_score(targets, preds))
 
+
+def save_predictions_as_tiff(model, dataloader, save_dir="predictions"):
+    os.makedirs(save_dir, exist_ok=True)
+    model.eval()
+    counter = 0
+
+    with torch.no_grad():
+        for inputs, _ in tqdm(dataloader, desc="Saving predictions"):
+            inputs = inputs.to(Config.DEVICE)
+            outputs = model(inputs)
+            preds = torch.sigmoid(outputs)
+            preds = (preds > 0.5).float()
+
+            for i in range(preds.size(0)):
+                pred_mask = preds[i].squeeze(0).cpu().numpy().astype(np.uint8) * 255
+                pred_img = Image.fromarray(pred_mask)
+                pred_img.save(os.path.join(save_dir, f"0_{counter}.tif"))
+                counter += 1
+
 # -----------------------
 # Main
 # -----------------------
@@ -262,5 +281,7 @@ if __name__ == "__main__":
 
     model = ResNetChangeDetection().to(Config.DEVICE)
     model.load_state_dict(torch.load(Config.BEST_MODEL_PATH, map_location=Config.DEVICE))
+
+    save_predictions_as_tiff(model, test_loader, save_dir="predictions")
 
     evaluate(model, test_loader)
